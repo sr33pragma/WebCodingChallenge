@@ -37,6 +37,8 @@ class MktSim {
 
     getCurrentEventTime() {
         let evnt = this.getCurrentEvent();
+        if (evnt == null)
+            return null;
         let eventTime = evnt[1]
         return eventTime;
     }
@@ -59,8 +61,13 @@ class MktSim {
 
     start() {
         this.startTime = Date.now();
+        let tm =  this.getCurrentEventTime();
+        if (tm == null) {
+            return false;
+        }
+        this.startEventTime = tm
         this.runState = RunState.Running;
-        this.startEventTime = this.getCurrentEventTime();
+        return true;
     }
 
     stop() {
@@ -117,6 +124,8 @@ class MktSim {
 
     msecsToEventTime() {
         let evnt = this.getCurrentEvent();
+        if (evnt == null)
+            return null;
         let eventTime = this.getCurrentEventTime(); 
         let eventTimeOffset = this.getCurrentEventMsecsAfterStartEvent();
         let expectedElapsedTime = Math.round(eventTimeOffset / this.replaySpeed);

@@ -45,18 +45,26 @@ app.listen(3000, () => {
 });
 
 function startStreaming(req, res) {
+    console.log ("Start called..");
     if (!(req.headers.accept && req.headers.accept == 'text/event-stream')) {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end('req.headers.accept - Expected: text/event-stream');
         return;
     }
+    if (sim.start() == false) {
+        console.log("Start called on end of stream: " + sim.toString());
+        res.writeHead(204, { 'Content-Type': 'text/event-stream' });
+        res.end("data: end of stream. Do a reset. " + sim.toString() + "\n\n");
+        return;
+    }
+    // all good, start
+    startTime = Date.now();
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive'
     });
-    startTime = Date.now();
-    sim.start();
+
     setTimeout(function () {
         streamEvents(res, sim);
     }, 100);
@@ -86,13 +94,16 @@ function streamEvents(res, sim) {
         // console.log("delay: " + delay);
         let row = sim.getCurrentEventAsJson();
         let eventElapsedSecs = sim.getCurrentEventMsecsAfterStartEvent()/1000;
-        res.write('id: ' + sim.getCurrentEventId() + '\n');
+        // res.write('id: ' + sim.getCurrentEventId() + '\n');
         res.write("data: " + row +'\n\n');
         console.log ("res.write data:" + row);
         sim.next();
         delay = sim.msecsToWait ();
     }
     if (delay == null) {
+        console.log ("end of stream: " + sim.toString());
+        res.write("data: end of stream - " + sim.toString() + "\n\n");
+        res.end();
         return;
     }
     console.log ("streamEvents.setTimeout: " + delay);
