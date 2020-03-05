@@ -4,11 +4,68 @@
   <meta charset="utf-8" />
 </head>
 <body>
-  <script>
-    var source = new EventSource('/start');
+<button id="btnPauseResume" onclick="pauseResume()">Start</button>
+<button id="btnReset" onclick="reset()">Reset</button>
+<button id="0.5x" onclick="setSpeed(0.5)">0.5x</button>
+<button id="1x" onclick="setSpeed(1)">1x</button>
+<button id="2x" onclick="setSpeed(2)">2x</button>
+<button id="5x" onclick="setSpeed(5)">5x</button>
+<button id="10x" onclick="setSpeed(10)">10x</button>
+<p id="status">status</p>
+<p id="eventstream"></p>
+
+<script>
+  let tradeEvents = "";
+  let source;
+
+  function pauseResume() {
+    if (document.getElementById("btnPauseResume").innerHTML == "Start") {
+      resume();
+      document.getElementById("btnPauseResume").innerHTML = "Stop"
+    }
+    else {
+      pause();
+      document.getElementById("btnPauseResume").innerHTML = "Start"
+    }
+  }
+
+  function resume() {
+    source = new EventSource('/start');
     source.onmessage = function(e) {
-      document.body.innerHTML = e.data + '<br>' + (document.body.innerHTML).substr(1, 10000) ;
+      tradeEvents = (e.data + '<br>' + tradeEvents).substr(1, 10000);
+      document.getElementById("eventstream").innerHTML = tradeEvents;
     };
+    setStatus("Start..");
+  }
+
+  function pause() {
+    sendCommand('stop');
+  }
+
+  function reset() {
+    sendCommand('reset');
+    document.getElementById("btnPauseResume").innerHTML = "Start"
+  }
+
+  function setSpeed(val) {
+    sendCommand('set?speed=' + val);
+    document.getElementById("btnPauseResume").innerHTML = "Start"
+  }
+
+  function sendCommand(endpoint) {
+    source.close();
+    fetch(endpoint).then(response => response.text())
+            .then(data => setStatus(data))
+            .catch(err => {
+              setStatus("Exception: " + err);
+            })
+  }
+
+
+  function setStatus(someText) {
+      document.getElementById("status").innerHTML = someText;
+    }
+
   </script>
 </body>
 </html>

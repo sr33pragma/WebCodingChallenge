@@ -15,30 +15,30 @@ app.get('/', function(req, res){
     res.end();
 });
 
-app.get ('/events', function(req, res){
-    processEvents(req, res);
-});
-
 app.get ('/start', function(req, res){
+    console.log ("GET: start")
     startStreaming(req, res);
 });
 
 app.get ('/stop', function(req, res){
+    console.log ("GET: stop")
     stopStreaming(req, res);
 });
 
 app.get ('/reset', function(req, res){
+    console.log ("GET: reset")
     resetToStart(req, res);
 });
 
 app.get ('/set', function(req, res){
-    let speed = req.query.speed;
-    if (speed != null) {
-        sim.replaySpeed = parseFloat(speed);
-    }
-    stopStreaming(req, res);
+    console.log ("GET: set")
+    // let speed = req.query.speed;
+    // if (speed != null) {
+    //     sim.replaySpeed = parseFloat(speed);
+    // }
+    // stopStreaming(req, res);
+    setVars(req, res);
 });
-
 
 app.listen(3000, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
@@ -71,18 +71,31 @@ function startStreaming(req, res) {
 }
 
 function stopStreaming(req, res) {
+    console.log ("Stop called..");
     sim.stop();
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.write("pause/stop: " + sim.toString());
+    res.write("data: Stopped at event: " + sim.toString());
     res.end();
-    console.log("stopStreaming..");
 }
 
 function resetToStart(req, res) {
+    console.log ("Reset called..");
     sim.stop();
     sim.reset();
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.write("reset: " + sim.toString());
+    res.write("data: Reset at event: " + sim.toString());
+    res.end();
+}
+
+function setVars(req, res) {
+    console.log ("Set called..");
+    let speed = req.query.speed;
+    if (speed != null) {
+        sim.replaySpeed = parseFloat(speed);
+    }
+    sim.stop();
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.write("data: SetSpeed to: " + speed + " at event: " + sim.toString());
     res.end();
 }
 
@@ -91,18 +104,16 @@ function streamEvents(res, sim) {
     console.log(">> Start StreamEvents");
     let elapsedSecs = (Date.now() - startTime)/1000.0;
     while (delay != null && delay <= 0) {
-        // console.log("delay: " + delay);
         let row = sim.getCurrentEventAsJson();
         let eventElapsedSecs = sim.getCurrentEventMsecsAfterStartEvent()/1000;
-        // res.write('id: ' + sim.getCurrentEventId() + '\n');
         res.write("data: " + row +'\n\n');
         console.log ("res.write data:" + row);
         sim.next();
         delay = sim.msecsToWait ();
     }
     if (delay == null) {
-        console.log ("end of stream: " + sim.toString());
-        res.write("data: end of stream - " + sim.toString() + "\n\n");
+        console.log ("stop streaming: " + sim.toString());
+        res.write("data: stop streaming at event: " + sim.toString() + "\n\n");
         res.end();
         return;
     }
