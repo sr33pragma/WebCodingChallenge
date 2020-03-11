@@ -5,7 +5,7 @@ var { MktSim } = require ('./mktsim.js');
 
 
 const hostname = '127.0.0.1';
-const port = 3333;
+const port = 3333;  // dont use 3000, other use it
 var sim = new MktSim();
 var app = express();
 
