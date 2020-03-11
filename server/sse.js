@@ -5,10 +5,15 @@ var { MktSim } = require ('./mktsim.js');
 
 
 const hostname = '127.0.0.1';
-const port = 3000;
+const port = 3333;
 var sim = new MktSim();
 var app = express();
 
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 app.get('/', function(req, res){
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.write(fs.readFileSync(__dirname + '/sse.html'));
@@ -40,7 +45,7 @@ app.get ('/set', function(req, res){
     setVars(req, res);
 });
 
-app.listen(3000, () => {
+app.listen(port, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
 });
 

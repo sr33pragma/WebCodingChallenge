@@ -1,0 +1,15 @@
+#IntelliJ
+.idea
+.idea/*
+*.iml
+*.ipr
+*.iws
+*.swp
+
+# Eclipse-specific
+.classpath
+.settings/
+.project
+
+# misc
+.DS_Store
